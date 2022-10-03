@@ -11,6 +11,7 @@ import java.io.IOException;
 
 public class Main {
     public static void main (String[] args) throws IOException {
+        /*
         ViewModel viewM = new ViewModel();
 
         // Injected into all use cases.
@@ -25,5 +26,9 @@ public class Main {
 
         ConsoleView view = new ConsoleView(viewM, controller);
         view.runView();
+         */
+
+        ViewModel viewM = new ViewModel();
+        TCPServer serv = new TCPServer(viewM);
     }
 }
