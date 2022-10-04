@@ -1,26 +1,36 @@
 package views.tcp_util;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PlayerConnection implements Runnable {
 
     private final ServerSocket serverSocket;
     private Socket clientSocket;
-    private PrintWriter outgoingDataWriter;
-    private Reception receiver;
-    private boolean connectionComplete;
-    private boolean closed;
 
-    /**
+    // Reader and Writer of data to the connected client
+    private PrintWriter outgoingDataWriter;
+    private BufferedReader incomingDataReader;
+
+    private final LinkedList<String> receivedData;
+    // prevent data retrieval when the reception thread is assigning a new value.
+    // For thread safety.
+    private final ReentrantLock lockQ;
+
+    private boolean connectionComplete;
+
+    /** Start the connection thread to accept and then receive data from a connection
      * @param serverSocket Socket associated with this running server
      */
     public PlayerConnection(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
         connectionComplete = false;
+
+        lockQ = new ReentrantLock();
+        receivedData = new LinkedList<>();
 
         // Starts the accepting run method
         (new Thread(this)).start();
@@ -30,46 +40,97 @@ public class PlayerConnection implements Runnable {
      * <p>
      *     When the thread is started, it waits to accept a connection. This step may
      *     fail in which case the connection will never complete and this connection instance
-     *     is useless. Once a connection has been accepted, a reception thread is started which
-     *     will constantly receive data and queue it. Once both of those complete, we have
-     *     completed the connection and this method will return True
-     *
+     *     is useless. Return true in that event.
+     * </p>
+     * <p>
+     *     As soon as a connection is successfully accepted, this method also returns true
      * </p>
      * @return is connection complete
      */
-    public boolean isConnectionComplete() {
-        return connectionComplete;
-    }
+    public boolean isConnectionComplete() { return connectionComplete; }
 
     /**
-     * If the connection was never properly established, this connection is considered
-     * closed. Otherwise, if the reception thread is no longer receiving because it crashed,
-     * connection is also closed.
-     * @return if this connection is closed
+     * If accept() failed, socket will be null and this method returns true.
+     * If connection was established but subsequently the socket was called to close(),
+     * this method also returns true.
+     * @return if this connection is closed or was not yet connected
      */
-    public boolean isClosed() {
-        return closed || !receiver.isReceiving();
+    public boolean isClosed() { return clientSocket == null || clientSocket.isClosed(); }
+
+    /**
+     * Attempt to close the client socket, the writer, and the reader. Return success
+     */
+    public boolean closeConnection () {
+        try {
+            clientSocket.close();
+            outgoingDataWriter.close();
+            incomingDataReader.close();
+
+            System.out.println("closeConnection() with " + clientSocket.getInetAddress() + " succeeded");
+
+            return true;
+        }
+
+        catch (IOException e) {
+            System.out.println("closeConnection() with " + clientSocket.getInetAddress() + " failed");
+
+            return false;
+        }
     }
 
     /**
+     * Check if the data queue is empty in a thread safe manner
+     * @return if any data has been received
+     */
+    public boolean hasReceivedData () {
+        boolean empty;
+
+        // Waits until lock is free, then locks it to make edit
+        lockQ.lock();
+        try {
+            // Add newly received chunk to the queue
+            empty = receivedData.isEmpty();
+        } finally {
+            lockQ.unlock();
+        }
+
+        return empty;
+    }
+
+    /**
+     * Pop from the queue in a thread-safe manner.
      * @return the next chunk, or null if connection is closed
      */
     public String getNextChunk () {
-        return isClosed() ? null : receiver.getNextChunk();
+        if (hasReceivedData()) {
+            String dataChunk;
+
+            // Waits until lock is free, then locks it to make edit
+            lockQ.lock();
+            try {
+                // Pop the next Datachunk in queeu
+                dataChunk = receivedData.remove();
+            } finally {
+                lockQ.unlock();
+            }
+
+            return dataChunk;
+
+        } return "";
     }
 
     /**
-     * Attempt to close the connection. If connection hasn't been started yet or
-     * if connection is already closed, then nothing changed so return false
-     * @return did the connection go from a state of being open to being closed
+     * Add next string of data to the receivedData queue in a thread safe manner
      */
-    public boolean closeConnection () throws IOException {
-        if (connectionComplete || isClosed()) {
-            clientSocket.close();
-            closed = true;
-
-            System.out.println("Connection with " + clientSocket.getInetAddress() + " has been closed");
-        } return false;
+    private void addNewChunk (String chunk) {
+        // Waits until lock is free, then locks it to make edit
+        lockQ.lock();
+        try {
+            // Add newly received chunk to the queue
+            receivedData.add(chunk);
+        } finally {
+            lockQ.unlock();
+        }
     }
 
     /**
@@ -90,32 +151,66 @@ public class PlayerConnection implements Runnable {
         try {
             System.out.println("Awaiting a new connection...");
             clientSocket = serverSocket.accept();
+
+            System.out.println("Connection with " + clientSocket.getInetAddress() + " has been established.");
         } catch (IOException e) {
             clientSocket = null;
+            System.out.println("Failed to accept a connection");
+        } finally {
+            // Regardless of outcome, this accept stage has passed. This flag will notify
+            // that this connection instance is no longer waiting to accept.
+            connectionComplete = true;
         }
 
         if (clientSocket != null) {
+
             try {
-                OutputStream s = clientSocket.getOutputStream();
-
                 // PrintWriter puts given chunks of sized strings to a stream
-                this.outgoingDataWriter = new PrintWriter(
-                        s, true
-                );
-
-                receiver = new Reception(clientSocket);
-
-                // Sets connection as complete
-                connectionComplete = true;
-
-                System.out.println("Connection with " + clientSocket.getInetAddress() + " has been established.");
+                outgoingDataWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+                // Buffered reader allows you to grab data from the stream in defined sized chunks
+                incomingDataReader = new BufferedReader(
+                        // Reads byte stream and turns it to a character stream
+                        new InputStreamReader(
+                                // Byte stream of incoming data
+                                this.clientSocket.getInputStream()));
             }
-            // Occurs if output stream cannot be acquired (socket closed, etc)
-            catch (IOException ignored) {
-                closed = true;
+            // Occurs if getInputStream or getOutputStream throw IOException
+            // Can happen if: Socket is closed (impossible), socket is not connected (impossible),
+            // or, some random IO error (don't see where it would come from)
+            catch (IOException e) {
+                System.out.println("1) Could not get input/output stream for " + clientSocket.getInetAddress());
 
-                System.out.println("Connection with " + clientSocket.getInetAddress() + " failed to establish.");
+                boolean hasClosed = closeConnection();
+                if (!hasClosed) {
+                    System.out.println("2) Tried to close connection but failed");
+                }
             }
+
+            while (true) {
+                try {
+                    // Read until \n or \r character and add chunk to received data.
+                    String dataChunk = incomingDataReader.readLine();
+
+                    // Null means that the stream of the connected client is closed (aka client closed)
+                    if (dataChunk == null) {
+                        System.out.println("Closing, received NULL from " + clientSocket.getInetAddress());
+                        break;
+                    }
+
+                    // Add and print the received string
+                    addNewChunk(dataChunk);
+                    System.out.println("R: " + clientSocket.getInetAddress() + " has sent: " + dataChunk);
+
+                }
+                // Occurs if readline causes IO Error. This should only occur if the reader was closed
+                // due to the impossible preceding error. (Or from other mysterious causes)
+                catch (IOException e) {
+                    System.out.println("An IO exception occurred in Reception from " + clientSocket.getInetAddress());
+                    break;
+                }
+            }
+            // Close all thingies
+            closeConnection();
         }
     }
 }

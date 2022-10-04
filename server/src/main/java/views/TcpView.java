@@ -1,31 +1,32 @@
 package views;
 
 import views.tcp_util.PlayerConnection;
+import views.tcp_util.UserInputThread;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 
 public class TcpView extends View {
 
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
+
     // Clients that have been connected and those that have terminated
-    private ArrayList<PlayerConnection> clients;
-    private ArrayList<PlayerConnection> closedClients;
+    private final ArrayList<PlayerConnection> clients;
+    private final ArrayList<PlayerConnection> closedClients;
     // Used locally to move clients to closedClients list
-    ArrayList<PlayerConnection> moveToClosed;
+    private final ArrayList<PlayerConnection> moveToClosed;
+
     // Connection currently open waiting someone to join
     private PlayerConnection awaitingClient;
 
     // TODO: Remove this test code
-    private BufferedReader userInputReader;
+    UserInputThread userInputThread;
 
     /**
-     *
-     * @param port
+     * @param port Port to open the server on
      * @throws IOException if opening the server socket fails for some reason
      */
     public TcpView (int port) throws IOException {
@@ -34,43 +35,45 @@ public class TcpView extends View {
         clients = new ArrayList<>();
         closedClients = new ArrayList<>();
         moveToClosed = new ArrayList<>();
+
         // Opens connection to await a client
         awaitingClient = new PlayerConnection(serverSocket);
 
         // TODO: Remove this test code
-        userInputReader = new BufferedReader(new InputStreamReader(System.in));
+        userInputThread = new UserInputThread();
+        (new Thread(userInputThread)).start();
     }
+
     @Override
     protected void start() {}
 
-
     @Override
     protected void runLoop() {
-        if (awaitingClient.isConnectionComplete() &&
-                !awaitingClient.isClosed()) {
+        // If the accept() stage has passed for this connection.
+        if (awaitingClient.isConnectionComplete()) {
+            if (!awaitingClient.isClosed()) {
+                // Add current client to clients
+                clients.add(awaitingClient);
+            }
 
-            // Add current client to clients
-            clients.add(awaitingClient);
             // Open connection to accept next client
             awaitingClient = new PlayerConnection(serverSocket);
-        }
-
-        String userInput;
-        try {
-            userInput = userInputReader.readLine();
-        } catch (IOException e) {
-            userInput = "";
         }
 
         for (PlayerConnection client: clients) {
             // Sets closed client to be transferred
             if (client.isClosed()) {
                 moveToClosed.add(client);
-            } else {
-                if (!userInput.equals("")) {
-                    client.sendLine(userInput);
-                }
             }
+
+            // TODO: Remove test code:
+            else {
+                if (!userInputThread.currentInput.equals("")) {
+                    boolean hasLineSent = client.sendLine(userInputThread.currentInput);
+                    System.out.println("Line " + (hasLineSent ? "has" : "has NOT") + " been sent");
+                    userInputThread.currentInput = "";
+                }
+            } // TODO: --------------
         }
 
         // Transfers closed clients and clears the list

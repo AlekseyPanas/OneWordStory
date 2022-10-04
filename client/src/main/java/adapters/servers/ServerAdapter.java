@@ -2,6 +2,7 @@ package adapters.servers;
 
 import adapters.ViewModel;
 import adapters.servers.ds.ConnectReturnData;
+import adapters.servers.ds.ServerReturnData;
 import usecases.ServerResponse;
 import usecases.submit_name.snServerGateway;
 
@@ -36,15 +37,33 @@ public abstract class ServerAdapter implements snServerGateway {
      */
     protected abstract boolean isConnectionOpen ();
 
+    /**
+     * Gracefully close the connection with the server
+     * @return whether the connection is now closed
+     */
+    protected abstract boolean closeConnection ();
+
+    /**
+     * Send display name to server in agreed format, wait for response and return it
+     */
+    protected abstract ServerReturnData setDisplayName (String displayName);
+
     @Override
     public ServerResponse setName(String displayName) {
+        // Try to connect
         ConnectReturnData res = connect();
+
         if (res.isSuccess()) {
+            // Try to send in display name
+            ServerReturnData serverReturnData = setDisplayName(displayName);
 
-
-            return new ServerResponse(ServerResponse.ResponseCode.SUCCESS, res.getMessage();
+            // Return if display name was received by server
+            return new ServerResponse(serverReturnData.isSuccess() ?
+                    ServerResponse.ResponseCode.SUCCESS : ServerResponse.ResponseCode.FAIL,
+                    serverReturnData.getMessage());
         }
 
+        // Failed to connect to server
         return new ServerResponse(ServerResponse.ResponseCode.FAIL, res.getMessage());
     }
 }

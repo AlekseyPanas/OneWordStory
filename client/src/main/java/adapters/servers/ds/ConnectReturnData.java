@@ -2,28 +2,23 @@ package adapters.servers.ds;
 
 // Layer: INTERFACE ADAPTERS
 
-public class ConnectReturnData {
+public class ConnectReturnData extends ServerReturnData {
     public static final int CLIENT_ID_WHEN_FAIL = -1;
 
-    private final boolean success;
-    private final String message;
     private final int clientId;
 
-    public ConnectReturnData (boolean success, String message, int clientId) {
-        this.success = success;
-        this.message = message;
+    public ConnectReturnData (boolean success, String message,
+                              int responseCode, int clientId) {
+        super(success, message, responseCode);
         this.clientId = clientId;
+    }
+
+    public ConnectReturnData (boolean success, String message, int responseCode) {
+        super(success, message, responseCode);
+        this.clientId = ConnectReturnData.CLIENT_ID_WHEN_FAIL;
     }
 
     public int getClientId() {
         return clientId;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public boolean isSuccess() {
-        return success;
     }
 }
