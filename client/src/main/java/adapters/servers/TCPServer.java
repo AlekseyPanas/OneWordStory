@@ -41,13 +41,12 @@ public class TCPServer extends ServerAdapter implements Runnable {
         receivedData = new LinkedList<>();
     }
 
-    // TODO: Change back to protected
     /**
      * Try to connect to the server and return output
      * @return success of connection and server-side clientId associated with this client
      */
     @Override
-    public ConnectReturnData connect() {
+    protected ConnectReturnData connect() {
         try {
             // Close existing connection if there is one.
             // Assume all components are closed after this line.
@@ -93,7 +92,6 @@ public class TCPServer extends ServerAdapter implements Runnable {
     @Override
     protected boolean isConnectionOpen () { return serverConnection.isConnected() && !serverConnection.isClosed(); }
 
-    // TODO: Change back to protected
     /**
      * Close server socket, reader, and writer. Catch failure. Note that there
      * is a rare (might be impossible) event where only some components
@@ -101,7 +99,7 @@ public class TCPServer extends ServerAdapter implements Runnable {
      * @return if ALL components closed successfully.
      */
     @Override
-    public boolean closeConnection() {
+    protected boolean closeConnection() {
         try {
             // Connection gracefully closes
             serverConnection.close();
@@ -172,7 +170,6 @@ public class TCPServer extends ServerAdapter implements Runnable {
         }
     }
 
-    // TODO: Change back to protected
     /**
      * Send a line of data to the server as long as the connection is open
      * @param line string without \n \r indicating what you want to send
@@ -180,7 +177,7 @@ public class TCPServer extends ServerAdapter implements Runnable {
      * was closed
      */
     @Override
-    public boolean sendLine(String line) {
+    protected boolean sendLine(String line) {
         if (isConnectionOpen()) {
             serverWriter.println(line);
             return true;

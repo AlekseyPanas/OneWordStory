@@ -22,7 +22,7 @@ public class TcpView extends View {
     // Connection currently open waiting someone to join
     private PlayerConnection awaitingClient;
 
-    // TODO: Remove this test code
+    // Takes System.in input from another thread.
     UserInputThread userInputThread;
 
     /**
@@ -39,9 +39,8 @@ public class TcpView extends View {
         // Opens connection to await a client
         awaitingClient = new PlayerConnection(serverSocket);
 
-        // TODO: Remove this test code
         userInputThread = new UserInputThread();
-        (new Thread(userInputThread)).start();
+        userInputThread.startReader();
     }
 
     @Override
@@ -60,32 +59,51 @@ public class TcpView extends View {
             awaitingClient = new PlayerConnection(serverSocket);
         }
 
+        // Reads user input
+        if (userInputThread.hasInput()) {
+            String input = userInputThread.getCurrentInput().trim().toLowerCase();
+            System.out.println(input);
+            // 'q' command stops the server
+            if (input.equals("q")) {
+                stop();
+            }
+        }
+
         for (PlayerConnection client: clients) {
             // Sets closed client to be transferred
             if (client.isClosed()) {
                 moveToClosed.add(client);
             }
 
-            // TODO: Remove test code:
-            else {
-                if (!userInputThread.currentInput.equals("")) {
-                    boolean hasLineSent = client.sendLine(userInputThread.currentInput);
-                    System.out.println("Line " + (hasLineSent ? "has" : "has NOT") + " been sent");
-                    userInputThread.currentInput = "";
-                }
-            } // TODO: --------------
+            else {}
         }
 
         // Transfers closed clients and clears the list
-        for (PlayerConnection client: moveToClosed) {
-            clients.remove(client);
-            closedClients.add(client);
+        for (PlayerConnection closedClient: moveToClosed) {
+            clients.remove(closedClient);
+            closedClients.add(closedClient);
         }
         moveToClosed.clear();
     }
 
+    /**
+     * In charge of closing all resources.
+     */
     @Override
     protected void end() {
-
+        System.out.println("Closing program...");
+        try {
+            serverSocket.close();
+            for (PlayerConnection conn : clients) {
+                if (!conn.closeConnection()) {
+                    throw new IOException();
+                }
+            }
+            userInputThread.closeReader();
+        } catch (IOException e) {
+            System.out.println("Some resources failed to close");
+        } finally {
+            System.out.println("Termination finished");
+        }
     }
 }

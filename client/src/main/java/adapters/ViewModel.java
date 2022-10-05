@@ -2,18 +2,12 @@ package adapters;
 
 // Layer: INTERFACE ADAPTERS
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ViewModel {
-    private boolean lock;
+    private ReentrantLock lock;
 
     public ViewModel () {
-        lock = false;
-    }
-
-    public void lockViewModel () {
-        lock = true;
-    }
-
-    public void unlockViewModel () {
-        lock = false;
+        lock = new ReentrantLock();
     }
 }
