@@ -1,29 +1,36 @@
 package entities;
 
+import entities.factories.WordFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Story {
-    ArrayList<Word> words;
-    WordFactory wordFactory;
+    private ArrayList<Word> words;
+    private final WordFactory wordFactory;
 
     public Story (WordFactory wordFactory) {
-        this.wordFactory = wordFactory;
         words = new ArrayList<>();
+        this.wordFactory = wordFactory;
     }
 
     public Story (WordFactory wordFactory, Word[] words) {
-        this.wordFactory = wordFactory;
-        this.words = new ArrayList<>();
+        // Calls other constructor
+        this(wordFactory);
+        // Adds given words
         this.words.addAll(Arrays.asList(words));
     }
 
     /**
-     * Add a word to the story
-     * @return success
+     * Create a word via the provided factory instance and add it to the story
+     * only if it is valid
+     * @return did the word get added (aka is the word valid)
      */
     public boolean addWord (String word, Player author) {
-        words.add(wordFactory.create(word, author));
-        return true;
+        Word w = wordFactory.create(word, author);
+        if (w.isValid()) {
+            words.add(w);
+            return true;
+        } return false;
     };
 }
