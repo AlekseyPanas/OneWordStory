@@ -3,6 +3,7 @@ package entities.games;
 import entities.Player;
 import entities.Story;
 import entities.lobbies.Lobby;
+import entities.lobbies.PublicLobby;
 
 public abstract class Game {
 
@@ -16,7 +17,7 @@ public abstract class Game {
      * @param secondsPerTurn seconds per player's turn
      */
     public Game (Lobby lobby, Story story, int secondsPerTurn) {
-        this.lobby = lobby;
+        //this.lobby = lobby;
         this.story = story;
         this.secondsPerTurn = secondsPerTurn;
     }
@@ -30,7 +31,6 @@ public abstract class Game {
      * @return the current story in this game
      */
     public Story getStory () { return this.story; };
-
     /**
      * Remove a player from the game without question
      * and adjust the game state accordingly. Return if the player

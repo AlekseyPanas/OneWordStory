@@ -1,9 +1,11 @@
 package entities.profanity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class TempProfanityFilter implements ProfanityFilter {
-    private final String[] profanity = {"darn", "dumb", "stupid"};
+    private final List<String> profanity = Arrays.asList("darn", "dumb", "stupid");
 
     /**
      * Checks profanity from a hard coded list variable containing all kinds of foul terms.
@@ -13,7 +15,7 @@ public class TempProfanityFilter implements ProfanityFilter {
      */
     @Override
     public String filterWord(String word) {
-        return Arrays.asList(profanity).contains(word) ?
+        return profanity.contains(word) ?
         "*".repeat(word.length()) : word;
     }
 }

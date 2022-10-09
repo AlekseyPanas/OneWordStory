@@ -11,7 +11,5 @@ public class WordFactory {
         this.v = v;
     }
 
-    public Word create (String word, Player author) {
-        return new Word(word, author, this.v);
-    }
+    public Word create (String word, Player author) { return new Word(word, author, this.v); }
 }
