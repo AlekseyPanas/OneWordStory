@@ -48,6 +48,8 @@ public abstract class Lobby {
      */
     public abstract boolean isReady ();
 
+    public String getLobbyCode () { return lobbyId; }
+
     public Player[] getPlayers () {
         Player[] p = new Player[playerList.size()];
         return playerList.toArray(p);

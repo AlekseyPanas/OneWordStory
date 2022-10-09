@@ -1,3 +1,6 @@
+import entities.LobbyManager;
+import entities.codegenerators.NumericCodeGenerator;
+import entities.factories.LobbyFactory;
 import views.TcpView;
 
 import java.io.BufferedReader;
@@ -6,6 +9,9 @@ import java.io.InputStreamReader;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        // Lobby manager with numeric lobby codes of length 5
+        LobbyManager manager = new LobbyManager(new NumericCodeGenerator(5), new LobbyFactory());
+
         TcpView server = new TcpView(42069);
         server.runView();
     }
