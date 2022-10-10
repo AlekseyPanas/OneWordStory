@@ -8,6 +8,7 @@ import java.util.Arrays;
  */
 public class NoSpacesValidityChecker implements ValidityChecker {
     public static final int MAX_WORD_LENGTH = 15;
+    // TODO: Add word lenght limit to condition below
 
     @Override
     public boolean isValid(String word) {

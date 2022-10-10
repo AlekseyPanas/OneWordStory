@@ -1,10 +1,14 @@
 package views;
 
+import adapters.ViewModel;
+
 public abstract class View {
     private volatile boolean stopped;
+    private ViewModel viewM;
 
-    public View() {
-        stopped = false;
+    public View(ViewModel viewM) {
+        this.stopped = false;
+        this.viewM = viewM;
     }
 
     protected abstract void start();
@@ -12,13 +16,13 @@ public abstract class View {
     protected abstract void runLoop();
 
     public void runView () {
-        start();
+        this.start();
 
         while (!stopped) {
-            runLoop();
+            this.runLoop();
         }
 
-        end();
+        this.end();
     }
 
     public void stop () {

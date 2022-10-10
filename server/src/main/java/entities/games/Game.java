@@ -8,17 +8,21 @@ import entities.lobbies.PublicLobby;
 public abstract class Game {
 
     private final Lobby lobby;
-    private final Story story;
     private final int secondsPerTurn;
 
     /**
      * @param lobby to which this game belongs
-     * @param story an instance of the story that will be added to in this game
      * @param secondsPerTurn seconds per player's turn
+     * @param initialPlayers an array of AT LEAST 2 PLAYERS
      */
-    public Game (Lobby lobby, Story story, int secondsPerTurn) {
-        //this.lobby = lobby;
-        this.story = story;
+    public Game (Lobby lobby,  int secondsPerTurn, Player[] initialPlayers) {
+        // TODO: Throw error if 2 players not given
+
+        for (Player p : initialPlayers) {
+            this.addPlayer(p);
+        }
+
+        this.lobby = lobby;
         this.secondsPerTurn = secondsPerTurn;
     }
 
@@ -30,48 +34,38 @@ public abstract class Game {
     /**
      * @return the current story in this game
      */
-    public Story getStory () { return this.story; };
+    public abstract Story getStory ();
+
     /**
      * Remove a player from the game without question
      * and adjust the game state accordingly. Return if the player
      * was in the game and was removed
      */
-    public boolean removePlayer (Player player) {};
+    public abstract boolean removePlayer (Player player);
 
     /**
      * Add a new player to this game without question
      * and adjust the game state accordingly
      */
-    public void addPlayer (Player player) {};
-
-    /**
-     * @return all the players in this game currently
-     */
-    public Player[] getPlayers () {};
+    public abstract void addPlayer (Player player);
 
     /**
      * Change the turn to the next player without question (guaranteed to happen)
      */
-    public void switchTurn () {};
+    public abstract void switchTurn ();
 
     /**
      * @return Number of seconds left in the current turn
      */
-    public int getTurnTimeLeftSeconds () {};
-
-    /**
-     * Add time to the number of seconds left in the current turn
-     * @param seconds number of seconds to add. Provide negative number to subtract
-     */
-    public void addToTurnTimer (int seconds) {};
+    public abstract int getTurnTimeLeftSeconds ();
 
     /**
      * @return the player whose turn it is
      */
-    public Player getCurrentTurnPlayer () {};
+    public abstract Player getCurrentTurnPlayer ();
 
     /**
      * @return if the game is over by some custom condition
      */
-    public boolean isGameOver () {};
+    public abstract boolean isGameOver ();
 }

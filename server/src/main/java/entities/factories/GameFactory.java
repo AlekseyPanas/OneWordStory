@@ -1,5 +1,6 @@
 package entities.factories;
 
+import entities.Player;
 import entities.games.Game;
 import entities.lobbies.Lobby;
 
@@ -11,5 +12,5 @@ public interface GameFactory {
      * @param settings A map of string to integer settings
      * @return the game instance
      */
-    Game create (HashMap<String, Integer> settings, Lobby lobby);
+    Game create (HashMap<String, Integer> settings, Lobby lobby, Player[] initialPlayers);
 }

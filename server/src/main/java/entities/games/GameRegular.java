@@ -7,16 +7,19 @@ import entities.factories.WordFactory;
 import entities.lobbies.Lobby;
 import entities.word_validity.NoSpacesValidityChecker;
 
-public class GameRegular extends Game {
+import java.util.LinkedList;
+import java.util.Queue;
 
-    private final Lobby lobby;
+public class GameRegular extends Game {
 
     private final Story story;
     private Player currentTurnPlayer;
     private int turnTimeLeftSeconds;
 
-    public GameRegular (Lobby lobby) {
-        super(lobby);
+    private final Queue<Player> playerQueue = new LinkedList<>();
+
+    public GameRegular (Lobby lobby, int secondsPerTurn, Player[] initialPlayers) {
+        super(lobby, secondsPerTurn, initialPlayers);
 
         // Creates words
         WordFactory wordFactory = new WordFactory(new NoSpacesValidityChecker());
@@ -24,54 +27,42 @@ public class GameRegular extends Game {
         // Creates story with the given word factory
         story = new StoryFactory().create(wordFactory);
 
-        // Sets lobby
-        this.lobby = lobby;
-    }
+        // Sets first player in queue to be their turn
+        currentTurnPlayer = playerQueue.peek();
 
-    public Lobby getLobby () {
-        return lobby;
-    }
-
-    @Override
-    public Story getStory() {
-        return story;
+        // TODO: Initiate internal timer to run passive changes in the game (such as turn timer countdown)
     }
 
     @Override
-    public boolean removePlayer(Player player) { return false; }
+    public Story getStory() { return story; }
 
     @Override
-    public void addPlayer(Player player) {
-
-    }
+    public boolean removePlayer(Player player) { return playerQueue.remove(player); }
 
     @Override
-    public Player[] getPlayers() {
-        return new Player[0];
-    }
+    public void addPlayer(Player player) { playerQueue.add(player); }
 
     @Override
     public void switchTurn() {
-
+        // Move player to back of queue
+        playerQueue.add(playerQueue.remove());
+        // Set current player to be the new first player in the queue
+        currentTurnPlayer = playerQueue.peek();
     }
 
     @Override
     public int getTurnTimeLeftSeconds() {
-        return 0;
-    }
-
-    @Override
-    public void addToTurnTimer(int seconds) {
-
+        return this.turnTimeLeftSeconds;
     }
 
     @Override
     public Player getCurrentTurnPlayer() {
-        return null;
+        return this.currentTurnPlayer;
     }
 
     @Override
     public boolean isGameOver() {
+        // TODO: Fix this to end game once less than 2 players
         return false;
     }
 }

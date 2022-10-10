@@ -33,12 +33,23 @@ public class LobbyManager {
         return newLobby.getLobbyCode();
     }
 
+    // TODO: Move this to a separate POOL implementation
+    /**
+     * Block thread until a lobby is available to join, once player
+     * is added to the lobby, then return. Return false if something
+     * goes wrong
+     */
+    public boolean sortPlayer (Player player) {
+        // TODO: implement this
+        return true;
+    }
+
     /**
      * @return all lobbies
      */
     public Lobby[] getLobbies () {
-        // TODO: Implement this
-        return null;
+        Lobby[] l = new Lobby[lobbies.size()];
+        return lobbies.toArray(l);
     }
 
     /**

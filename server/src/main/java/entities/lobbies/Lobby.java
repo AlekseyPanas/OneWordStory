@@ -35,7 +35,7 @@ public abstract class Lobby {
             public void run() {
                 // Start game if ready
                 if (isReady()) {
-                    // TODO: Start game
+                    Lobby.this.startGame();
                 }
             }
         }, 0, LOBBY_CHECK_READY_EVERY_MS);
@@ -54,6 +54,36 @@ public abstract class Lobby {
         Player[] p = new Player[playerList.size()];
         return playerList.toArray(p);
     }
+
+    /**
+     * @param p player to add
+     * @return if the player was successfully added
+     */
+    public boolean addPlayer (Player p) {
+        // Add player to game if started
+        if (isGameStarted()) {
+            game.addPlayer(p);
+        }
+
+        playerList.add(p);
+        return true;
+    }
+
+    /**
+     * @param p player to remove
+     * @return if the player was successfully removed
+     */
+    public boolean removePlayer (Player p) {
+        // Remove player from game if game is started
+        if (isGameStarted()) {
+            game.removePlayer(p);
+        }
+        return playerList.remove(p);
+    }
+
+    private void startGame () { this.game = gameFactory.create(settings, this, getPlayers()); }
+
+    public boolean isGameStarted () { return this.game != null; }
 
     public void setSetting (String settingName, int settingValue) {
         settings.put(settingName, settingValue);

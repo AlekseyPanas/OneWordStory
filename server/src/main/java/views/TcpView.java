@@ -1,5 +1,6 @@
 package views;
 
+import adapters.ViewModel;
 import views.tcp_util.PlayerConnection;
 import views.tcp_util.UserInputThread;
 
@@ -29,7 +30,9 @@ public class TcpView extends View {
      * @param port Port to open the server on
      * @throws IOException if opening the server socket fails for some reason
      */
-    public TcpView (int port) throws IOException {
+    public TcpView (int port, ViewModel viewM) throws IOException {
+        super(viewM);
+
         serverSocket = new ServerSocket(port);
 
         clients = new ArrayList<>();
