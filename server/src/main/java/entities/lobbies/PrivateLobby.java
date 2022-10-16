@@ -16,7 +16,7 @@ public class PrivateLobby extends Lobby {
     @Override
     public boolean isReady() {
         // If less than 2 players are in the lobby, return false right away
-        if (getPlayers().length < 2) {
+        if (getPlayers().size() < 2) {
             return false;
         }
 

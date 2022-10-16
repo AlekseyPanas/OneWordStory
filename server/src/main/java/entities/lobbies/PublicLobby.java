@@ -11,6 +11,6 @@ public class PublicLobby extends Lobby {
      */
     @Override
     public boolean isReady() {
-        return getPlayers().length >= 2;
+        return getPlayers().size() >= 2;
     }
 }

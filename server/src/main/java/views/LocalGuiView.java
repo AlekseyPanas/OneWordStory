@@ -1,8 +1,11 @@
 package views;
 
+import adapters.ViewModel;
+
 public class LocalGuiView extends View {
 
-    public LocalGuiView () {
+    public LocalGuiView (ViewModel viewModel) {
+        super(viewModel);
 
     }
     @Override

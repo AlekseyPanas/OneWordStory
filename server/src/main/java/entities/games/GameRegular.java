@@ -8,6 +8,7 @@ import entities.lobbies.Lobby;
 import entities.word_validity.NoSpacesValidityChecker;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class GameRegular extends Game {
@@ -18,7 +19,7 @@ public class GameRegular extends Game {
 
     private final Queue<Player> playerQueue = new LinkedList<>();
 
-    public GameRegular (Lobby lobby, int secondsPerTurn, Player[] initialPlayers) {
+    public GameRegular (Lobby lobby, int secondsPerTurn, List<Player> initialPlayers) {
         super(lobby, secondsPerTurn, initialPlayers);
 
         // Creates words

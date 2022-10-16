@@ -4,10 +4,7 @@ import entities.games.Game;
 import entities.Player;
 import entities.factories.GameFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public abstract class Lobby {
     public static final int LOBBY_CHECK_READY_EVERY_MS = 100;
@@ -17,7 +14,7 @@ public abstract class Lobby {
 
     private HashMap<String, Integer> settings;
 
-    private ArrayList<Player> playerList;
+    private List<Player> playerList;
     private Game game;
     private GameFactory gameFactory;
 
@@ -50,9 +47,8 @@ public abstract class Lobby {
 
     public String getLobbyCode () { return lobbyId; }
 
-    public Player[] getPlayers () {
-        Player[] p = new Player[playerList.size()];
-        return playerList.toArray(p);
+    public List<Player> getPlayers () {
+        return playerList;
     }
 
     /**

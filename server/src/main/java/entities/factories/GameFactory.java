@@ -5,6 +5,7 @@ import entities.games.Game;
 import entities.lobbies.Lobby;
 
 import java.util.HashMap;
+import java.util.List;
 
 public interface GameFactory {
     /**
@@ -12,5 +13,5 @@ public interface GameFactory {
      * @param settings A map of string to integer settings
      * @return the game instance
      */
-    Game create (HashMap<String, Integer> settings, Lobby lobby, Player[] initialPlayers);
+    Game create (HashMap<String, Integer> settings, Lobby lobby, List<Player> initialPlayers);
 }
