@@ -5,6 +5,8 @@ import entities.Story;
 import entities.lobbies.Lobby;
 import entities.lobbies.PublicLobby;
 
+import java.util.List;
+
 public abstract class Game {
 
     private final Lobby lobby;
@@ -15,7 +17,7 @@ public abstract class Game {
      * @param secondsPerTurn seconds per player's turn
      * @param initialPlayers an array of AT LEAST 2 PLAYERS
      */
-    public Game (Lobby lobby,  int secondsPerTurn, Player[] initialPlayers) {
+    public Game (Lobby lobby,  int secondsPerTurn, List<Player> initialPlayers) {
         // TODO: Throw error if 2 players not given
 
         for (Player p : initialPlayers) {
